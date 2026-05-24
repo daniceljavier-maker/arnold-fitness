@@ -808,6 +808,33 @@ export default function ArnoldV3() {
     if (dataLoaded) saveDailyData(meals, activity);
   }, [meals, activity, dataLoaded]);
 
+  // Arnold's mood based on daily compliance
+  const getArnoldMood = () => {
+    const daily = meals.reduce((a, m) => {
+      const t = m.analysis?.totals;
+      return t ? { cal: a.cal + t.calories, p: a.p + t.protein, c: a.c + t.carbs, f: a.f + t.fat } : a;
+    }, { cal: 0, p: 0, c: 0, f: 0 });
+
+    const calsOk = daily.cal >= GOALS.calories * 0.8 && daily.cal <= GOALS.calories * 1.1;
+    const proteinOk = daily.p >= GOALS.protein * 0.85;
+    const sleepOk = activity.sleep >= 6;
+    const waterOk = activity.water >= 2;
+    const trainedOk = activity.baseball > 0 || activity.padel > 0 || activity.gym > 0 || activity.steps > 5000;
+
+    const checksPassed = [calsOk, proteinOk, sleepOk, waterOk, trainedOk].filter(Boolean).length;
+
+    if (checksPassed >= 4) return "happy";
+    if (checksPassed <= 2) return "serious";
+    return "happy";
+  };
+
+  const mood = getArnoldMood();
+  const arnoldImg = {
+    happy: "/arnold-happy.png",
+    serious: "/arnold-serious.png",
+    full: "/arnold-full.png"
+  }[mood] || "/arnold-happy.png";
+
   const handleFile = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -958,13 +985,13 @@ export default function ArnoldV3() {
 
       {/* Header */}
       <div className="header">
-        <div className="header-avatar">
-          🐙
+        <div className="header-avatar" style={{ backgroundImage: `url('${arnoldImg}')`, backgroundSize: "cover", backgroundPosition: "center", fontSize: 0 }}>
+          Arnold
           <div className="header-dot" />
         </div>
         <div className="header-info">
           <h1>Arnold</h1>
-          <p>Pulpo Fitness · El Clan de los Pulpos</p>
+          <p>Pulpo Fitness · {mood === "serious" ? "¡Necesitas mejorar!" : "¡Vas bien!"}</p>
         </div>
       </div>
 
@@ -985,7 +1012,7 @@ export default function ArnoldV3() {
           <div className="chat-scroll">
             {messages.map((m) => (
               <div key={m.id} className={`msg ${m.from}`}>
-                {m.from === "arnold" && <div className="msg-avatar">🐙</div>}
+                {m.from === "arnold" && <img src={arnoldImg} alt="Arnold" style={{ width: 30, height: 30, borderRadius: 10, flexShrink: 0, objectFit: "cover" }} />}
                 <div style={{ maxWidth: "78%" }}>
                   <div className={`bubble ${m.from}`}>
                     {m.preview && <img src={m.preview} alt="comida" />}
@@ -1006,7 +1033,7 @@ export default function ArnoldV3() {
             ))}
             {loading && (
               <div className="typing">
-                <div className="msg-avatar typing-avatar">🐙</div>
+                <img src={arnoldImg} alt="Arnold" style={{ width: 30, height: 30, borderRadius: 10, flexShrink: 0, objectFit: "cover", animation: "pulpoBounce 0.8s ease infinite" }} />
                 <div className="typing-dots">
                   <div className="typing-dot" />
                   <div className="typing-dot" />
@@ -1213,7 +1240,7 @@ export default function ArnoldV3() {
 
           {meals.length === 0 && (
             <div className="empty">
-              <div className="empty-icon">🐙</div>
+              <img src="/arnold-full.png" alt="Arnold" style={{ width: 120, height: 120, objectFit: "contain", marginBottom: 12 }} />
               <p style={{ fontWeight: 600, color: T.textSecondary }}>No hay comidas registradas</p>
               <p>Ve al chat y mándame una foto de tu comida</p>
             </div>
