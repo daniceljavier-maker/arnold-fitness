@@ -783,11 +783,12 @@ export default function ArnoldV3() {
   const [syncStatus, setSyncStatus] = useState({});
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  const fileRef = useRef(null);
-  const endRef = useRef(null);
-
+  // Define goals first
   const GOALS = { calories: 2500, protein: 150, carbs: 250, fat: 65 };
   const TMB = 1750;
+
+  const fileRef = useRef(null);
+  const endRef = useRef(null);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
